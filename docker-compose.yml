@@ -1,0 +1,23 @@
+version: '3'
+services:
+
+  sql_proxy:
+    container_name: sqlproxy
+    image: gcr.io/cloudsql-docker/gce-proxy:1.19.1
+    command: /cloud_sql_proxy -dir=/cloudsql -instances=${CLOUDSQL_CONNECTION_NAME}=tcp:0.0.0.0:${LOCAL_CLOUDSQL_PORT} -credential_file=/tmp/keys/keyfile.json
+    user: root
+    volumes:
+        - ${GCP_KEY_PATH}:/tmp/keys/keyfile.json:ro
+    ports:
+      - ${LOCAL_CLOUDSQL_PORT}:${LOCAL_CLOUDSQL_PORT}
+  
+  pgadmin:
+    container_name: pgadmin-4
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    depends_on:
+      - sql_proxy
+    ports:
+      - "${PGADMIN_LOCAL_PORT}:80"
